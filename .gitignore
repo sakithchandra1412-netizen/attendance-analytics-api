@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.pytest_cache/
+.venv/
+.env
+__pycache__/
+explain_check.py
+sample_data/
+PROBLEM_STATEMENT.docx
+.DS_Store

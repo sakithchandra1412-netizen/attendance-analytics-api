@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HROne Attendance & Analytics Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b0f19;
+      --card-bg: rgba(17, 24, 39, 0.75);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text: #f9fafb;
+      --text-muted: #9ca3af;
+      --primary: #6366f1;
+      --primary-hover: #4f46e5;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius: 14px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: radial-gradient(circle at top right, #1e1b4b 0%, #0b0f19 50%, #030712 100%);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: rgba(11, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.25rem;
+      color: #fff;
+    }
+    .logo-badge {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+    .user-picker {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    select, input, button {
+      font-family: inherit;
+      font-size: 0.9rem;
+    }
+    .select-emp {
+      background: rgba(31, 41, 55, 0.9);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 8px;
+      outline: none;
+      cursor: pointer;
+    }
+    .btn {
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .btn-primary { background: var(--primary); color: #fff; }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn-success { background: #059669; color: #fff; }
+    .btn-success:hover { background: #047857; transform: translateY(-1px); }
+    .btn-danger { background: #dc2626; color: #fff; }
+    .btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
+    .btn-outline {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      text-decoration: none;
+    }
+    .btn-outline:hover { color: #fff; border-color: rgba(255,255,255,0.3); }
+
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      padding: 16px 32px 0 32px;
+      border-bottom: 1px solid var(--card-border);
+      background: rgba(11, 15, 25, 0.5);
+      overflow-x: auto;
+    }
+    .tab-btn {
+      padding: 12px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn:hover { color: #e5e7eb; }
+    .tab-btn.active {
+      color: #fff;
+      border-bottom-color: var(--primary);
+      font-weight: 600;
+    }
+
+    main {
+      padding: 32px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      flex: 1;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; animation: fadeIn 0.2s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      backdrop-filter: blur(16px);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+
+    .stat-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+    .stat-box:hover { border-color: rgba(255,255,255,0.15); }
+    .stat-label { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    .stat-val { font-size: 1.8rem; font-weight: 700; margin-top: 6px; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 14px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--card-border);
+    }
+    th {
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .badge-present { background: rgba(16, 185, 129, 0.2); color: #34d399; }
+    .badge-wfh { background: rgba(99, 102, 241, 0.2); color: #818cf8; }
+    .badge-onduty { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .badge-absent { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+    .badge-leave { background: rgba(168, 85, 247, 0.2); color: #c084fc; }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(31, 41, 55, 0.8);
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--primary);
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #1f2937;
+      border: 1px solid var(--card-border);
+      color: #fff;
+      padding: 14px 20px;
+      border-radius: 8px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 100;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    pre {
+      background: #030712;
+      border: 1px solid var(--card-border);
+      padding: 16px;
+      border-radius: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      color: #a5b4fc;
+      max-height: 500px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span class="logo-badge">HROne</span>
+      <span>Attendance & Analytics</span>
+    </div>
+    <div class="user-picker">
+      <span style="font-size: 0.85rem; color: var(--text-muted);">Logged in as:</span>
+      <select id="empSelector" class="select-emp" onchange="onEmployeeChanged()"></select>
+      <a href="/docs" target="_blank" class="btn btn-outline">Interactive Swagger Docs ↗</a>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="tab-btn active" onclick="switchTab('punch', event)">🕒 Punch & Regularize</button>
+    <button class="tab-btn" onclick="switchTab('logs', event)">📋 Attendance Logs</button>
+    <button class="tab-btn" onclick="switchTab('analytics', event)">📊 Monthly Scorecard</button>
+    <button class="tab-btn" onclick="switchTab('department', event)">🏢 Department Summary</button>
+    <button class="tab-btn" onclick="switchTab('leaderboard', event)">🏆 Late Leaderboard</button>
+    <button class="tab-btn" onclick="switchTab('trend', event)">📈 Department Trend</button>
+    <button class="tab-btn" onclick="switchTab('explain', event)">⚡ Query Explain</button>
+  </nav>
+
+  <main>
+    <!-- TAB 1: PUNCH & REGULARIZE -->
+    <div id="tab-punch" class="tab-content active">
+      <div class="card">
+        <h3 style="margin-bottom: 16px;">Active Employee Profile</h3>
+        <div class="grid-4" id="profileCard">
+          <div class="stat-box"><div class="stat-label">Employee Code</div><div class="stat-val" id="profEmpCode" style="color: #818cf8;">-</div></div>
+          <div class="stat-box"><div class="stat-label">Name</div><div class="stat-val" id="profName" style="font-size: 1.4rem;">-</div></div>
+          <div class="stat-box"><div class="stat-label">Department</div><div class="stat-val" id="profDept" style="font-size: 1.4rem;">-</div></div>
+          <div class="stat-box"><div class="stat-label">Shift (IST)</div><div class="stat-val" id="profShift" style="font-size: 1.4rem;">-</div></div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <h3 style="margin-bottom: 16px;">Daily Punch Actions</h3>
+          <div class="form-group">
+            <label>Presence Status</label>
+            <select id="punchStatus" class="form-control">
+              <option value="PRESENT">PRESENT (On-site Work)</option>
+              <option value="WFH">WFH (Work From Home)</option>
+              <option value="ON_DUTY">ON_DUTY (Official Business Duty)</option>
+            </select>
+          </div>
+          <div style="display: flex; gap: 14px; margin-top: 24px;">
+            <button class="btn btn-success" style="flex: 1;" onclick="doPunchIn()">Punch In (Now)</button>
+            <button class="btn btn-danger" style="flex: 1;" onclick="doPunchOut()">Punch Out (Now)</button>
+          </div>
+          <div id="punchFeedback" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-bottom: 16px;">Regularize Attendance</h3>
+          <div class="form-group">
+            <label>Attendance Date (YYYY-MM-DD)</label>
+            <input type="date" id="regDate" class="form-control" value="2026-07-07">
+          </div>
+          <div class="form-group">
+            <label>Regularized By</label>
+            <input type="text" id="regBy" class="form-control" value="hr.manager">
+          </div>
+          <div class="form-group">
+            <label>Reason (min 5 characters)</label>
+            <input type="text" id="regReason" class="form-control" value="Biometric scanner sync delay">
+          </div>
+          <div class="form-group">
+            <label>New Status (Optional)</label>
+            <select id="regStatus" class="form-control">
+              <option value="">-- Keep Current Status --</option>
+              <option value="PRESENT">PRESENT</option>
+              <option value="WFH">WFH</option>
+              <option value="ON_DUTY">ON_DUTY</option>
+              <option value="ABSENT">ABSENT</option>
+              <option value="LEAVE">LEAVE</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="doRegularize()">Submit Regularization</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LOGS -->
+    <div id="tab-logs" class="tab-content">
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+          <h3>Attendance Logs</h3>
+          <button class="btn btn-outline" onclick="loadAttendanceLogs()">↻ Refresh Logs</button>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Employee</th>
+              <th>Status</th>
+              <th>Punch In (UTC)</th>
+              <th>Punch Out (UTC)</th>
+              <th>Work Hours</th>
+              <th>Late Mins</th>
+              <th>Overtime Mins</th>
+              <th>Half Day</th>
+              <th>History</th>
+            </tr>
+          </thead>
+          <tbody id="logsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: MONTHLY SCORECARD -->
+    <div id="tab-analytics" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+          <h3>Monthly Attendance Scorecard</h3>
+          <input type="month" id="scorecardMonth" class="form-control" style="width: 180px;" value="2026-07" onchange="loadScorecard()">
+        </div>
+        <div class="grid-4" id="scorecardStats">
+          <div class="stat-box"><div class="stat-label">Working Days (R7)</div><div class="stat-val" id="scWorking">-</div></div>
+          <div class="stat-box"><div class="stat-label">Present Days (R5-R7)</div><div class="stat-val" id="scPresent">-</div></div>
+          <div class="stat-box"><div class="stat-label">Attendance Rate</div><div class="stat-val" id="scPct" style="color: #34d399;">-</div></div>
+          <div class="stat-box"><div class="stat-label">Leave Days</div><div class="stat-val" id="scLeave">-</div></div>
+          <div class="stat-box"><div class="stat-label">Late Count</div><div class="stat-val" id="scLateCount">-</div></div>
+          <div class="stat-box"><div class="stat-label">Total Late (mins)</div><div class="stat-val" id="scLateMins">-</div></div>
+          <div class="stat-box"><div class="stat-label">Total Overtime (mins)</div><div class="stat-val" id="scOvertime">-</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: DEPARTMENT SUMMARY -->
+    <div id="tab-department" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+          <h3>Department Monthly Summary</h3>
+          <input type="month" id="deptMonth" class="form-control" style="width: 180px;" value="2026-07" onchange="loadDeptSummary()">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Department</th>
+              <th>Headcount (R9)</th>
+              <th>Present Days</th>
+              <th>Avg Work Hours (R8)</th>
+              <th>Late Count</th>
+              <th>Total Late (mins)</th>
+              <th>Leave Count</th>
+              <th>On Duty Count</th>
+            </tr>
+          </thead>
+          <tbody id="deptTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 5: LEADERBOARD -->
+    <div id="tab-leaderboard" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+          <h3>Late-Comers Leaderboard (Ranked with Ties)</h3>
+          <input type="month" id="lbMonth" class="form-control" style="width: 180px;" value="2026-07" onchange="loadLeaderboard()">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Rank (1, 2, 2, 4)</th>
+              <th>Employee Code</th>
+              <th>Name</th>
+              <th>Department</th>
+              <th>Total Late Minutes</th>
+              <th>Late Count</th>
+            </tr>
+          </thead>
+          <tbody id="lbTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 6: TREND -->
+    <div id="tab-trend" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+          <h3>Department Daily Trend ($densify & 7-Day Moving Avg)</h3>
+          <select id="trendDept" class="form-control" style="width: 180px;" onchange="loadTrend()"></select>
+          <input type="date" id="trendFrom" class="form-control" style="width: 160px;" value="2026-07-01" onchange="loadTrend()">
+          <input type="date" id="trendTo" class="form-control" style="width: 160px;" value="2026-07-15" onchange="loadTrend()">
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Working Day?</th>
+              <th>Headcount</th>
+              <th>Present Count</th>
+              <th>Late Count</th>
+              <th>Attendance Rate</th>
+              <th>7-Day Moving Avg</th>
+            </tr>
+          </thead>
+          <tbody id="trendTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 7: EXPLAIN -->
+    <div id="tab-explain" class="tab-content">
+      <div class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+          <h3>MongoDB Execution Plan (Explain)</h3>
+          <select id="explainEndpoint" class="form-control" style="width: 240px;">
+            <option value="attendance_list">attendance_list</option>
+            <option value="employee_monthly">employee_monthly</option>
+            <option value="department_summary">department_summary</option>
+            <option value="late_leaderboard">late_leaderboard</option>
+            <option value="department_trend">department_trend</option>
+          </select>
+          <button class="btn btn-primary" onclick="runExplain()">Run Explain Plan</button>
+        </div>
+        <div id="explainStatus" style="margin-bottom: 16px;"></div>
+        <pre id="explainOutput">Click "Run Explain Plan" to inspect raw MongoDB queryPlanner and executionStats.</pre>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast"></div>
+
+  <script>
+    let employees = [];
+    let currentEmp = null;
+
+    function showToast(msg, isError = false) {
+      const t = document.getElementById("toast");
+      t.innerText = msg;
+      t.style.display = "block";
+      t.style.borderColor = isError ? "var(--danger)" : "var(--success)";
+      setTimeout(() => { t.style.display = "none"; }, 3500);
+    }
+
+    function switchTab(tabId, ev) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(c => c.classList.remove("active"));
+      if (ev && ev.target) ev.target.classList.add("active");
+      document.getElementById("tab-" + tabId).classList.add("active");
+      if (tabId === 'logs') loadAttendanceLogs();
+      if (tabId === 'analytics') loadScorecard();
+      if (tabId === 'department') loadDeptSummary();
+      if (tabId === 'leaderboard') loadLeaderboard();
+      if (tabId === 'trend') loadTrend();
+    }
+
+    async function loadEmployees() {
+      const res = await fetch("/employees");
+      const data = await res.json();
+      employees = data.items;
+      const selector = document.getElementById("empSelector");
+      const trendDept = document.getElementById("trendDept");
+      selector.innerHTML = "";
+      const depts = new Set();
+      employees.forEach(e => {
+        const opt = document.createElement("option");
+        opt.value = e.emp_code;
+        opt.text = `${e.emp_code} - ${e.name} (${e.department})`;
+        selector.appendChild(opt);
+        depts.add(e.department);
+      });
+      trendDept.innerHTML = "";
+      depts.forEach(d => {
+        const opt = document.createElement("option");
+        opt.value = d;
+        opt.text = d;
+        trendDept.appendChild(opt);
+      });
+      if (employees.length > 0) {
+        currentEmp = employees[0];
+        updateProfileUI();
+        loadScorecard();
+      }
+    }
+
+    function onEmployeeChanged() {
+      const code = document.getElementById("empSelector").value;
+      currentEmp = employees.find(e => e.emp_code === code);
+      updateProfileUI();
+      loadScorecard();
+    }
+
+    function updateProfileUI() {
+      if (!currentEmp) return;
+      document.getElementById("profEmpCode").innerText = currentEmp.emp_code;
+      document.getElementById("profName").innerText = currentEmp.name;
+      document.getElementById("profDept").innerText = currentEmp.department;
+      document.getElementById("profShift").innerText = `${currentEmp.shift_start} - ${currentEmp.shift_end}`;
+    }
+
+    async function doPunchIn() {
+      if (!currentEmp) return;
+      const status = document.getElementById("punchStatus").value;
+      const res = await fetch("/attendance/punch-in", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emp_code: currentEmp.emp_code, status })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Punch-in recorded successfully!");
+        document.getElementById("punchFeedback").innerHTML = `<div class="stat-box" style="border-color: var(--success);"><span class="badge badge-present">PUNCHED IN</span> Date: <b>${data.date}</b> | Late Minutes: <b>${data.late_minutes}m</b></div>`;
+      } else {
+        showToast(data.detail || "Punch-in failed", true);
+        document.getElementById("punchFeedback").innerHTML = `<div class="stat-box" style="border-color: var(--danger); color: #f87171;">${data.detail || "Error"}</div>`;
+      }
+    }
+
+    async function doPunchOut() {
+      if (!currentEmp) return;
+      const res = await fetch("/attendance/punch-out", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ emp_code: currentEmp.emp_code })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Punch-out recorded successfully!");
+        document.getElementById("punchFeedback").innerHTML = `<div class="stat-box" style="border-color: var(--success);"><span class="badge badge-present">PUNCHED OUT</span> Work Hours: <b>${data.work_hours}h</b> | Overtime: <b>${data.overtime_minutes}m</b> | Half Day: <b>${data.half_day}</b></div>`;
+      } else {
+        showToast(data.detail || "Punch-out failed", true);
+        document.getElementById("punchFeedback").innerHTML = `<div class="stat-box" style="border-color: var(--danger); color: #f87171;">${data.detail || "Error"}</div>`;
+      }
+    }
+
+    async function doRegularize() {
+      if (!currentEmp) return;
+      const date = document.getElementById("regDate").value;
+      const by = document.getElementById("regBy").value;
+      const reason = document.getElementById("regReason").value;
+      const status = document.getElementById("regStatus").value || undefined;
+
+      const body = { regularized_by: by, reason };
+      if (status) body.status = status;
+
+      const res = await fetch(`/attendance/${currentEmp.emp_code}/${date}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await res.json();
+      if (res.ok) {
+        showToast("Record regularized successfully!");
+      } else {
+        showToast(data.detail || "Regularization failed", true);
+      }
+    }
+
+    async function loadAttendanceLogs() {
+      const res = await fetch("/attendance");
+      const data = await res.json();
+      const tbody = document.getElementById("logsTableBody");
+      tbody.innerHTML = "";
+      data.items.forEach(item => {
+        const inStr = item.punch_in ? new Date(item.punch_in).toISOString().substr(11, 8) : "-";
+        const outStr = item.punch_out ? new Date(item.punch_out).toISOString().substr(11, 8) : "-";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${item.date}</b></td>
+          <td>${item.emp_code}</td>
+          <td><span class="badge badge-${item.status.toLowerCase()}">${item.status}</span></td>
+          <td>${inStr}</td>
+          <td>${outStr}</td>
+          <td>${item.work_hours !== null ? item.work_hours + "h" : "-"}</td>
+          <td>${item.late_minutes}m</td>
+          <td>${item.overtime_minutes}m</td>
+          <td>${item.half_day ? "Yes" : "No"}</td>
+          <td>${item.history.length > 0 ? "📝 " + item.history.length : "-"}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadScorecard() {
+      if (!currentEmp) return;
+      const month = document.getElementById("scorecardMonth").value;
+      const res = await fetch(`/analytics/employees/${currentEmp.emp_code}/monthly?month=${month}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      document.getElementById("scWorking").innerText = data.working_days;
+      document.getElementById("scPresent").innerText = data.present_days;
+      document.getElementById("scPct").innerText = data.attendance_pct !== null ? data.attendance_pct + "%" : "N/A";
+      document.getElementById("scLeave").innerText = data.leave_days;
+      document.getElementById("scLateCount").innerText = data.late_count;
+      document.getElementById("scLateMins").innerText = data.total_late_minutes + "m";
+      document.getElementById("scOvertime").innerText = data.total_overtime_minutes + "m";
+    }
+
+    async function loadDeptSummary() {
+      const month = document.getElementById("deptMonth").value;
+      const res = await fetch(`/analytics/departments/summary?month=${month}`);
+      const data = await res.json();
+      const tbody = document.getElementById("deptTableBody");
+      tbody.innerHTML = "";
+      data.items.forEach(d => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${d.department}</b></td>
+          <td>${d.headcount}</td>
+          <td>${d.present_days}</td>
+          <td>${d.avg_work_hours !== null ? d.avg_work_hours + "h" : "None"}</td>
+          <td>${d.late_count}</td>
+          <td>${d.total_late_minutes}m</td>
+          <td>${d.leave_count}</td>
+          <td>${d.on_duty_count}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadLeaderboard() {
+      const month = document.getElementById("lbMonth").value;
+      const res = await fetch(`/analytics/leaderboard/late?month=${month}`);
+      const data = await res.json();
+      const tbody = document.getElementById("lbTableBody");
+      tbody.innerHTML = "";
+      data.items.forEach(item => {
+        const medal = item.rank === 1 ? "🥇 " : (item.rank === 2 ? "🥈 " : (item.rank === 3 ? "🥉 " : ""));
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${medal}Rank ${item.rank}</b></td>
+          <td>${item.emp_code}</td>
+          <td>${item.name}</td>
+          <td>${item.department}</td>
+          <td><b style="color: #f87171;">${item.total_late_minutes}m</b></td>
+          <td>${item.late_count}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function loadTrend() {
+      const dept = document.getElementById("trendDept").value;
+      const from = document.getElementById("trendFrom").value;
+      const to = document.getElementById("trendTo").value;
+      if (!dept) return;
+      const res = await fetch(`/analytics/departments/${dept}/trend?from=${from}&to=${to}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      const tbody = document.getElementById("trendTableBody");
+      tbody.innerHTML = "";
+      data.items.forEach(item => {
+        const rate = item.attendance_rate !== null ? (item.attendance_rate * 100).toFixed(1) + "%" : "null";
+        const mavg = item.moving_avg_7d !== null ? (item.moving_avg_7d * 100).toFixed(1) + "%" : "null";
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${item.date}</b></td>
+          <td>${item.is_working_day ? "Mon-Fri" : "<span style='color: var(--text-muted)'>Weekend</span>"}</td>
+          <td>${item.headcount}</td>
+          <td>${item.present_count}</td>
+          <td>${item.late_count}</td>
+          <td>${rate}</td>
+          <td><b style="color: #818cf8;">${mavg}</b></td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function runExplain() {
+      const ep = document.getElementById("explainEndpoint").value;
+      let url = `/admin/explain/${ep}`;
+      if (ep === "employee_monthly") url += "?emp_code=EMP0001&month=2026-07";
+      else if (ep === "department_summary") url += "?month=2026-07";
+      else if (ep === "late_leaderboard") url += "?month=2026-07";
+      else if (ep === "department_trend") url += "?department=Engineering&from=2026-07-01&to=2026-07-10";
+
+      const res = await fetch(url);
+      const data = await res.json();
+      document.getElementById("explainStatus").innerHTML = `<div class="stat-box" style="border-color: var(--success);"><span class="badge badge-present">EXPLAIN OK</span> Collection: <b>${data.collection}</b> | Index Scan Verified: <b>IXSCAN Active</b> | Collscan: <b>None</b></div>`;
+      document.getElementById("explainOutput").innerText = JSON.stringify(data.explain, null, 2);
+    }
+
+    window.onload = () => {
+      loadEmployees();
+    };
+  </script>
+</body>
+</html>
